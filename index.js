@@ -62,44 +62,43 @@ async function fetchStockData() {
 }
 
 async function fetchReport(data) {
+    const apiKey = 'sk-8mWlSOZ27GAxPdmLY7cOQNVvt5sim0QrO4O3bSI4xetyCLmM'; // Cần thay thế bằng API key thực tế
+    const apiUrl = 'https://api.chatanywhere.org/v1/chat/completions';
+
     const messages = [
         {
             role: 'system',
-            content: 'You are a trading guru. Given data on share prices over the past 3 days, write a report of no more than 150 words describing the stocks performance and recommending whether to buy, hold or sell.'
+            content: 'You are a trading guru. Given data on share prices over the past 3 days, write a report of no more than 150 words describing the stock\'s performance and recommending whether to buy, hold, or sell.'
         },
         {
             role: 'user',
             content: data
         }
-    ]
+    ];
 
     try {
-        const openai = new OpenAI({
-            
-            apiKey : 'change this api key',
-            
-            dangerouslyAllowBrowser: true
-        })
-        const response = await openai.chat.completions.create({
-            model: 'gpt-4',
-            messages: messages
-        })
-        renderReport(response.choices[0].message.content)
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-4',
+                messages: messages
+            })
+        });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        renderReport(result.choices[0].message.content);
     } catch (err) {
-        console.log('Error:', err)
-        loadingArea.innerText = 'Unable to access AI. Please refresh and try again'
+        console.error('Error:', err);
+        loadingArea.innerText = 'Unable to access AI. Please check your API key or try again later.';
     }
-    /** 
-     * Challenge:
-     * 1. Use the OpenAI API to generate a report advising 
-     * on whether to buy or sell the shares based on the data 
-     * that comes in as a parameter.
-     * 
-     * 🎁 See hint.md for help!
-     * 
-     * 🏆 Bonus points: use a try catch to handle errors.
-     * **/
 }
 
 function renderReport(output) {
