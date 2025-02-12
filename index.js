@@ -62,31 +62,25 @@ async function fetchStockData() {
 }
 
 async function fetchReport(data) {
-    const apiKey = 'sk-8mWlSOZ27GAxPdmLY7cOQNVvt5sim0QrO4O3bSI4xetyCLmM'; // Cần thay thế bằng API key thực tế
-    const apiUrl = 'https://api.chatanywhere.org/v1/chat/completions';
-
-    const messages = [
-        {
-            role: 'system',
-            content: 'You are a trading guru. Given data on share prices over the past 3 days, write a report of no more than 150 words describing the stock\'s performance and recommending whether to buy, hold, or sell.'
-        },
-        {
-            role: 'user',
-            content: data
-        }
-    ];
+    const apiKey = 'AIzaSyDrWIZdTFtjc8yUUETgRMBrg94JqkO4H34'; // Cần thay thế bằng API key thực tế
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    console.log(apiUrl);
+    const requestBody = {
+        contents: [
+            {
+                role: "user",
+                parts: [{ text: "You are a trading guru. Given data on share prices over the past 3 days, write a report of no more than 150 words describing the stock's performance and recommending whether to buy, hold, or sell.\n\n" + data }]
+            }
+        ]
+    };
 
     try {
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                model: 'gpt-4',
-                messages: messages
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
@@ -94,12 +88,14 @@ async function fetchReport(data) {
         }
 
         const result = await response.json();
-        renderReport(result.choices[0].message.content);
+        const report = result.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
+        renderReport(report);
     } catch (err) {
         console.error('Error:', err);
         loadingArea.innerText = 'Unable to access AI. Please check your API key or try again later.';
     }
 }
+
 
 function renderReport(output) {
     loadingArea.style.display = 'none'
